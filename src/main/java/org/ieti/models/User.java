@@ -1,34 +1,52 @@
 package org.ieti.models;
+import org.ieti.repository.RoleEnum;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import java.util.Date;
 
-public class User {
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.*;
 
+@Document(collection = "user_collection")
+public class User implements UserDetails {
+    @Id
     private String id;
-    private final Date createdAt;
+    @Serial
+    private static final long serialVersionUID = 1L;
+    private Date createdAt;
     private String name;
     private String lastName;
     private String email;
-    private String passwordHash;
+    List<RoleEnum> roles;
+    private String encryptedPassword;
 
+    public User() {
+    }
     public User(String id, String name, String lastName, String email, String password) {
         this.id = id;
         this.name = name;
         this.lastName = lastName;
         this.email = email;
-        this.passwordHash = new BCryptPasswordEncoder().encode(password);
+        this.encryptedPassword = new BCryptPasswordEncoder().encode(password);
         this.createdAt = new Date();
+        roles = new ArrayList<>(Collections.singleton(RoleEnum.USER));
     }
 
-    public User(UserDto userDto) {
+    public User(UserDto userDto, String encryptedPassword) {
         this.id = null;
         this.name = userDto.getName();
         this.lastName = userDto.getLastName();
         this.email = userDto.getEmail();
-        this.passwordHash = new BCryptPasswordEncoder().encode(userDto.getPassword());
+        this.encryptedPassword = encryptedPassword;
         this.createdAt = new Date();
+        roles = new ArrayList<>(Collections.singleton(RoleEnum.USER));
     }
 
+    public List<RoleEnum> getRoles() {return roles; }
 
     public String getId() {
         return id;
@@ -64,8 +82,12 @@ public class User {
         return createdAt;
     }
 
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
+    public String getEncryptedPassword() {
+        return encryptedPassword;
+    }
+
+    public void setencryptedPassword(String encryptedPassword) {
+        this.encryptedPassword = encryptedPassword;
     }
 
     public void update(UserDto userDto) {
@@ -73,7 +95,42 @@ public class User {
         this.lastName = userDto.getLastName();
         this.email = userDto.getEmail();
         if (!userDto.getPassword().isEmpty()) {
-            this.passwordHash = new BCryptPasswordEncoder().encode(userDto.getPassword());
+            this.encryptedPassword = new BCryptPasswordEncoder().encode(userDto.getPassword());
         }
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(RoleEnum.USER.name()));
+    }
+
+    @Override
+    public String getPassword() {
+        return encryptedPassword;
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 }

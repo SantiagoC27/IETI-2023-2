@@ -3,7 +3,7 @@ package org.ieti.controllers.user;
 import org.ieti.exeptions.UserNotFoundException;
 import org.ieti.models.User;
 import org.ieti.models.UserDto;
-import org.ieti.services.UserService;
+import org.ieti.services.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,10 +24,9 @@ public class UserController {
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody UserDto userDTO) {
         //TODO implement this method
-        User user = new User(userDTO);
 
         URI createdUserUri = URI.create("");
-        return ResponseEntity.created(createdUserUri).body(usersService.save(user));
+        return ResponseEntity.created(createdUserUri).body(usersService.save(userDTO));
     }
 
     @GetMapping
