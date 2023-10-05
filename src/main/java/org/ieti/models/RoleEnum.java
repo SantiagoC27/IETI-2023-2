@@ -1,4 +1,4 @@
-package org.ieti.repository;
+package org.ieti.models;
 
 public enum RoleEnum {
     ADMIN,

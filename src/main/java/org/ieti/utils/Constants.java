@@ -8,7 +8,6 @@ import java.security.Key;
 public interface Constants {
 
     String CLAIMS_ROLES_KEY = "ieti_roles";
-    int TOKEN_DURATION_MINUTES = 1440;
-
+    String TOKEN_DURATION_MINUTES = "86400000";
     Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 }

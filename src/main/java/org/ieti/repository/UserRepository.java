@@ -1,12 +1,13 @@
 package org.ieti.repository;
 
-import org.ieti.models.User;
+import org.ieti.models.UserEntity;
+
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends MongoRepository<User, String> {
-    Optional<User> findByEmail(String email);
+public interface UserRepository extends MongoRepository<UserEntity, String> {
+    Optional<UserEntity> findByEmail(String email);
 }

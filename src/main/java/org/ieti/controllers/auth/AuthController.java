@@ -1,81 +1,52 @@
 package org.ieti.controllers.auth;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
-import org.ieti.exeptions.InvalidCredentialsException;
-import org.ieti.models.User;
-import org.ieti.models.UserDto;
-import org.ieti.security.encrypt.PasswordEncryptionService;
-import org.ieti.services.user.UserService;
+import org.ieti.controllers.user.request.AuthRequest;
+import org.ieti.controllers.user.request.UserDto;
+import org.ieti.models.UserEntity;
+import org.ieti.security.jwt.JwtUtils;
+import org.ieti.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.annotation.*;
 
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 import java.net.URI;
-import java.security.Key;
-import java.security.SecureRandom;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Optional;
-
-import static org.ieti.utils.Constants.*;
 
 
 @RestController
-@RequestMapping("v1/auth")
+@RequestMapping("/v1/auth")
 public class AuthController {
-    private final UserService userService;
-    private final PasswordEncryptionService passwordEncryptionService;
 
-    public AuthController(@Autowired UserService userService,@Autowired PasswordEncryptionService passwordEncryptionService) {
-        this.userService = userService;
-        this.passwordEncryptionService = passwordEncryptionService;
-    }
+    @Autowired
+    UserService userService;
 
-    @PostMapping(value = "login")
-    public TokeDto login(@RequestBody LoginDto loginDto){
-        Optional<User> optionalUser = userService.findByEmail(loginDto.email());
-        if(optionalUser.isEmpty()){
-            throw new InvalidCredentialsException();
-        }
+    @Autowired
+    JwtUtils jwtUtils;
 
-        User user = optionalUser.get();
+    @Autowired
+    AuthenticationManager authenticationManager;
 
-        if(passwordEncryptionService.isPasswordMatch(loginDto.password(), user.getEncryptedPassword())){
-            return generateTokenDto(user);
-        }else{
-            throw new InvalidCredentialsException();
-        }
-    }
-
-    @PostMapping(value = "register")
-    public ResponseEntity<User> register(@RequestBody UserDto userDTO) {
+    @PostMapping(value = "/register")
+    public ResponseEntity<UserEntity> register(@RequestBody UserDto userDTO) {
         URI createdUserUri = URI.create("");
         return ResponseEntity.created(createdUserUri).body(userService.save(userDTO));
     }
 
-    private String generateToken(User user, Date expirationDate){
-        return Jwts.builder()
-                .setSubject(user.getEmail())
-                .setIssuedAt(new Date())
-                .setExpiration(expirationDate)
-                .signWith(SECRET_KEY)
-                .compact();
+    @PostMapping("/login")
+    public String authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
+        if (authentication.isAuthenticated()) {
+            return jwtUtils.generateAccesToken(authRequest.getEmail());
+        } else {
+            throw new UsernameNotFoundException("invalid user request !");
+        }
     }
 
-    private TokeDto generateTokenDto(User user){
-        Calendar expirationDate = Calendar.getInstance();
-        expirationDate.add(Calendar.MINUTE, TOKEN_DURATION_MINUTES);
-        String token = generateToken(user, expirationDate.getTime());
-        return new TokeDto(token, expirationDate.getTime());
+    @GetMapping("/helloSecured")
+    public String helloSecured(){
+        return "Hello World Secured";
     }
-
 }
