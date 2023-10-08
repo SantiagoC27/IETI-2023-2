@@ -1,7 +1,8 @@
-package org.ieti.services;
+package org.ieti.services.impl;
 
 import org.ieti.models.UserEntity;
 import org.ieti.repository.UserRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

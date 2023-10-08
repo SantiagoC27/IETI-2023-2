@@ -1,16 +1,15 @@
-package org.ieti.services;
+package org.ieti.services.impl;
 
-import org.ieti.controllers.user.request.UserDto;
+import org.ieti.models.dto.UserDto;
 import org.ieti.models.RoleEnum;
 import org.ieti.models.RoleEntity;
 import org.ieti.models.UserEntity;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.ieti.services.UserService;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class UserServiceMap implements UserService {
+public class UserServiceMapImpl implements UserService {
     private final Map<String, UserEntity> userMap = new HashMap<>();
 
     @Override
@@ -42,7 +41,7 @@ public class UserServiceMap implements UserService {
 
     @Override
     public Optional<UserEntity> findByEmail(String email) {
-        return null;
+        return Optional.ofNullable(userMap.get(email));
     }
 
     @Override

@@ -1,4 +1,4 @@
-package org.ieti.controllers.user.request;
+package org.ieti.models.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

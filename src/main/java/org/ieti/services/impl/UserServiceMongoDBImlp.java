@@ -1,11 +1,15 @@
-package org.ieti.services;
+package org.ieti.services.impl;
 
 import lombok.AllArgsConstructor;
-import org.ieti.controllers.user.request.UserDto;
+
+import org.ieti.exeptions.UserFoundException;
+import org.ieti.models.dto.UserDto;
 import org.ieti.models.RoleEntity;
 import org.ieti.models.RoleEnum;
 import org.ieti.models.UserEntity;
 import org.ieti.repository.UserRepository;
+
+import org.ieti.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,11 +21,10 @@ import java.util.stream.Collectors;
 
 
 @Service
-@AllArgsConstructor
-public class UserServiceMongoDB implements UserService {
+public class UserServiceMongoDBImlp implements UserService {
 
     @Autowired
-    private final UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -29,22 +32,27 @@ public class UserServiceMongoDB implements UserService {
     @Override
     public UserEntity save(UserDto newUser) {
 
-        Set<RoleEntity> roles = newUser.getRoles().stream()
-                .map(role -> RoleEntity.builder()
-                        .name(RoleEnum.valueOf(role))
-                        .build())
-                .collect(Collectors.toSet());
+        Optional<UserEntity> exitsUser = userRepository.findByEmail(newUser.getEmail());
+        if(exitsUser.isPresent()){
+            throw new UserFoundException(newUser.getEmail());
+        }else {
+            Set<RoleEntity> roles = newUser.getRoles().stream()
+                    .map(role -> RoleEntity.builder()
+                            .name(RoleEnum.valueOf(role))
+                            .build())
+                    .collect(Collectors.toSet());
 
-        UserEntity userEntity = UserEntity.builder()
-                .createdAt(new Date())
-                .name(newUser.getName())
-                .lastName(newUser.getLastname())
-                .email(newUser.getEmail())
-                .password(passwordEncoder.encode(newUser.getPassword()))
-                .roles(roles)
-                .build();
+            UserEntity userEntity = UserEntity.builder()
+                    .createdAt(new Date())
+                    .name(newUser.getName())
+                    .lastName(newUser.getLastname())
+                    .email(newUser.getEmail())
+                    .password(passwordEncoder.encode(newUser.getPassword()))
+                    .roles(roles)
+                    .build();
 
-        return userRepository.save(userEntity);
+            return userRepository.save(userEntity);
+        }
     }
 
     @Override
@@ -71,7 +79,7 @@ public class UserServiceMongoDB implements UserService {
     public void update(String id, UserDto actUser) {
         UserEntity existedUserEntity = this.findById(id).orElse(null);
         if (existedUserEntity == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,  "user with id " + id + " doesn't exist");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,  "User with email " + actUser.getEmail() + " doesn't exist");
         }
         existedUserEntity.update(actUser);
         this.userRepository.save(existedUserEntity);
