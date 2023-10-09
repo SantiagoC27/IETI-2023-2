@@ -12,6 +12,7 @@ import org.ieti.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,11 +22,8 @@ import java.util.Optional;
 @RequestMapping("/v1/users")
 public class UserController {
 
-    private final UserService userService;
     @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    private UserService userService;
 
     @PostMapping
     @Operation(summary = "Permite crear un usuario")
@@ -95,6 +93,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{email}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Eliminar un usuario por correo electrónico")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Usuario eliminado"),

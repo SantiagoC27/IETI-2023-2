@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class UserServiceMongoDBImlp implements UserService {
 
     @Autowired
-    private UserRepository userRepository;
+    private  UserRepository userRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -79,7 +79,7 @@ public class UserServiceMongoDBImlp implements UserService {
     public void update(String id, UserDto actUser) {
         UserEntity existedUserEntity = this.findById(id).orElse(null);
         if (existedUserEntity == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,  "User with email " + actUser.getEmail() + " doesn't exist");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,  "Usuario con el email " + actUser.getEmail() + " no existe.");
         }
         existedUserEntity.update(actUser);
         this.userRepository.save(existedUserEntity);
